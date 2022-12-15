@@ -1,11 +1,12 @@
 import argparse
 import sys
-from os import linesep, environ
-from os.path import join, dirname
-from dotenv import load_dotenv
+import smtplib
 import pandas as pd
 from datetime import datetime, timedelta
-import smtplib
+from dotenv import load_dotenv
+from os import linesep, environ
+from os.path import join, dirname
+from typing import List
 
 
 def dataframe_valid(dataframe: pd.DataFrame) -> bool:
@@ -27,7 +28,7 @@ def read_datafile(filename: str) -> pd.DataFrame:
     return dataframe
 
 
-def find_birthdays(dataframe: pd.DataFrame, days_until_birthday: int = 7) -> list[dict]:
+def find_birthdays(dataframe: pd.DataFrame, days_until_birthday: int = 7) -> List[dict]:
     birthday_people = []
     date_week_after = datetime.today() + timedelta(days=days_until_birthday)
     date_week_after_string = date_week_after.strftime("%Y-%m-%d")
@@ -62,7 +63,7 @@ def send_single_email(
     session.sendmail("v.astasauskas@gmail.com", recipient, f"Subject: {subject}{linesep}{body}")
 
 
-def send_emails(birthday_people: list[dict], dataframe: pd.DataFrame, session):
+def send_emails(birthday_people: List[dict], dataframe: pd.DataFrame, session):
     for birthday_person in birthday_people:
         for index, row in dataframe.iterrows():
             if not row["email"] == birthday_person["email"]:
@@ -110,14 +111,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
     dataframe = pd.DataFrame()
 
-    if args.validate != None:
+    if args.validate is not None:
         try:
             dataframe = read_datafile(args.validate[0])
             dataframe_valid(dataframe)
         except ValueError as err:
             print(err)
 
-    if args.execute != None:
+    if args.execute is not None:
         dataframe = read_datafile(args.execute[0])
         session = initialize_smtp_server()
         birthday_list = find_birthdays(dataframe)
