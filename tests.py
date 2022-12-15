@@ -64,4 +64,7 @@ class TestFindBirthdays(BaseClass):
         data["birthdate"][2] = (datetime.today() + timedelta(days=8)).strftime("%Y-%m-%d")
         df = pd.DataFrame(data)
         birthday_list = find_birthdays(df)
-        assert birthday_list == [data["email"][0], data["email"][1]]
+        assert birthday_list == [
+            {"name": data["name"][0], "email": data["email"][0], "birthdate": data["birthdate"][0]},
+            {"name": data["name"][1], "email": data["email"][1], "birthdate": data["birthdate"][1]},
+        ]

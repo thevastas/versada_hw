@@ -23,16 +23,16 @@ def read_datafile(filename: str) -> pd.DataFrame:
     return dataframe
 
 
-def find_birthdays(dataframe: pd.DataFrame) -> list:
-    birthday_emails = []
-    date_week_after = datetime.today() + timedelta(days=7)
+def find_birthdays(dataframe: pd.DataFrame, days_until_birthday: int = 7) -> list:
+    birthday_people = []
+    date_week_after = datetime.today() + timedelta(days=days_until_birthday)
 
     for index, row in dataframe.iterrows():
         birthdate = datetime.strptime(row["birthdate"], "%Y-%m-%d")
         if birthdate.month == date_week_after.month and birthdate.day == date_week_after.day:
-            birthday_emails.append(row["email"])
+            birthday_people.append({"name": row["name"], "email": row["email"], "birthdate": row["birthdate"]})
 
-    return birthday_emails
+    return birthday_people
 
 
 parser = argparse.ArgumentParser(description="Birthday program")
