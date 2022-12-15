@@ -1,4 +1,5 @@
 import argparse
+from os import linesep
 import pandas as pd
 from datetime import datetime, timedelta
 
@@ -23,16 +24,51 @@ def read_datafile(filename: str) -> pd.DataFrame:
     return dataframe
 
 
-def find_birthdays(dataframe: pd.DataFrame, days_until_birthday: int = 7) -> list:
+def find_birthdays(dataframe: pd.DataFrame, days_until_birthday: int = 7) -> list[dict]:
     birthday_people = []
     date_week_after = datetime.today() + timedelta(days=days_until_birthday)
+    date_week_after_string = date_week_after.strftime("%Y-%m-%d")
 
     for index, row in dataframe.iterrows():
         birthdate = datetime.strptime(row["birthdate"], "%Y-%m-%d")
         if birthdate.month == date_week_after.month and birthdate.day == date_week_after.day:
-            birthday_people.append({"name": row["name"], "email": row["email"], "birthdate": row["birthdate"]})
+            birthday_people.append(
+                {
+                    "name": row["name"],
+                    "email": row["email"],
+                    "celebrates_on": date_week_after_string,
+                }
+            )
 
     return birthday_people
+
+
+def send_single_email(
+    recipient: str, name_of_birthday_person: str, date: str, name: str, amount_of_days: int = 7, dry_run: bool = False
+):
+    subject = f"Birthday Reminder: {name_of_birthday_person} birthday on {date}"
+    body = (
+        f"Hi {name},{linesep}This is a reminder that {name_of_birthday_person} "
+        + f"will be celebrating their birthday on {date}.{linesep}There are {amount_of_days} days left to get a present!"
+    )
+    if dry_run:
+        print(f"to: {recipient}")
+        print(f"subject: {subject}")
+        print(f"body: {body}")
+        print("---------")
+
+
+def send_emails(birthday_people: list[dict], dataframe: pd.DataFrame):
+    for birthday_person in birthday_people:
+        for index, row in dataframe.iterrows():
+            if not row["email"] == birthday_person["email"]:
+                send_single_email(
+                    recipient=row["email"],
+                    name_of_birthday_person=birthday_person["name"],
+                    date=birthday_person["celebrates_on"],
+                    name=row["name"],
+                    dry_run=True,
+                )
 
 
 parser = argparse.ArgumentParser(description="Birthday program")
@@ -61,4 +97,4 @@ if __name__ == "__main__":
     if args.execute != None:
         dataframe = read_datafile(args.execute[0])
         birthday_list = find_birthdays(dataframe)
-        print(birthday_list)
+        send_emails(birthday_list, dataframe)
