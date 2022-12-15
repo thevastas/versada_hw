@@ -1,9 +1,10 @@
-from main import dataframe_valid
+from main import dataframe_valid, find_birthdays
+from datetime import datetime, timedelta
 import pandas as pd
 import unittest
 
 
-class TestDataFrameValidation(unittest.TestCase):
+class BaseClass:
     def _construct_data_dict(self) -> dict:
         data = {
             "name": ["John", "Peter", "Janet"],
@@ -12,6 +13,8 @@ class TestDataFrameValidation(unittest.TestCase):
         }
         return data
 
+
+class TestDataFrameValidation(unittest.TestCase, BaseClass):
     def test_dataframe_missing_column(self):
         data = {"name": ["John", "Peter", "Janet"], "email": ["a@b.com", "b@a.com", "c@d.com"]}
         df = pd.DataFrame(data)
@@ -43,3 +46,22 @@ class TestDataFrameValidation(unittest.TestCase):
         df = pd.DataFrame(data)
         with self.assertRaises(ValueError):
             dataframe_valid(df)
+
+
+class TestFindBirthdays(BaseClass):
+    def test_no_birthdays(self):
+        data = self._construct_data_dict()
+        for entry in data["birthdate"]:
+            entry = datetime.today() + timedelta(days=8)
+        df = pd.DataFrame(data)
+        birthday_list = find_birthdays(df)
+        assert birthday_list == []
+
+    def test_find_birthdays(self):
+        data = self._construct_data_dict()
+        data["birthdate"][0] = (datetime.today() + timedelta(days=7)).strftime("%Y-%m-%d")
+        data["birthdate"][1] = (datetime.today() + timedelta(days=7)).strftime("%Y-%m-%d")
+        data["birthdate"][2] = (datetime.today() + timedelta(days=8)).strftime("%Y-%m-%d")
+        df = pd.DataFrame(data)
+        birthday_list = find_birthdays(df)
+        assert birthday_list == [data["email"][0], data["email"][1]]
