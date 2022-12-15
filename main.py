@@ -1,4 +1,5 @@
 import argparse
+import sys
 from os import linesep, environ
 from os.path import join, dirname
 from dotenv import load_dotenv
@@ -22,7 +23,6 @@ def dataframe_valid(dataframe: pd.DataFrame) -> bool:
 
 
 def read_datafile(filename: str) -> pd.DataFrame:
-    # TODO raise exception for reading
     dataframe = pd.read_csv(filename)
     return dataframe
 
@@ -59,13 +59,7 @@ def send_single_email(
         f"Hi {name},{linesep}This is a reminder that {name_of_birthday_person} "
         + f"will be celebrating their birthday on {date}.{linesep}There are {amount_of_days} days left to get a present!"
     )
-    if dry_run:
-        print(f"to: {recipient}")
-        print(f"subject: {subject}")
-        print(f"body: {body}")
-        print("---------")
-    else:
-        session.sendmail("v.astasauskas@gmail.com", recipient, f"Subject: {subject}{linesep}{body}")
+    session.sendmail("v.astasauskas@gmail.com", recipient, f"Subject: {subject}{linesep}{body}")
 
 
 def send_emails(birthday_people: list[dict], dataframe: pd.DataFrame, session):
@@ -88,10 +82,14 @@ def initialize_smtp_server():
     SMTP_SERVER = environ.get("SMTP_SERVER", "default")
     SMTP_PORT = environ.get("SMTP_PORT", "default")
     SENDER_EMAIL = environ.get("SENDER_EMAIL", "default")
-    session = smtplib.SMTP(SMTP_SERVER, int(SMTP_PORT))
-    session.starttls()
-    session.login(SENDER_EMAIL, API_KEY)
-    return session
+    try:
+        session = smtplib.SMTP(SMTP_SERVER, int(SMTP_PORT))
+        session.starttls()
+        session.login(SENDER_EMAIL, API_KEY)
+        return session
+    except ValueError:
+        print("SMTP credentials not found or invalid")
+        sys.exit(1)
 
 
 parser = argparse.ArgumentParser(description="Birthday program")
@@ -109,16 +107,16 @@ parser.add_argument(
 )
 
 if __name__ == "__main__":
-    dry_run = True
-
     args = parser.parse_args()
     dataframe = pd.DataFrame()
+
     if args.validate != None:
         try:
             dataframe = read_datafile(args.validate[0])
             dataframe_valid(dataframe)
         except ValueError as err:
             print(err)
+
     if args.execute != None:
         dataframe = read_datafile(args.execute[0])
         session = initialize_smtp_server()

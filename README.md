@@ -1,23 +1,23 @@
 # Installation:
 
 1. (Optional) Create a virtual environment:
-  python -m venv .venv
+`python -m venv .venv`
 
 2. Install the required packages:
-  pip install -r requirements.txt
+`pip install -r requirements.txt`
 
 # Usage:
 
 The program uses the following arguments:
 
-  -v --validate
+`-v --validate`
 
 Checks if the data file is valid for the script:
 - The file can be successfully parsed
 - All people have their names and e-mails set
 - Each person's birth date is in a valid format and in the past
 
-  -x --execute
+`-x --execute`
 
 -  Goes through the list of people and sends them birthday reminders, with the exception of the birthday person
 - The e-mail template is hardcoded
