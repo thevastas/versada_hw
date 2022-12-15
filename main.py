@@ -9,18 +9,18 @@ def dataframe_valid(dataframe):
     if pd.isna(dataframe["name"]).any() or pd.isna(dataframe["email"]).any():
         raise ValueError("The data file contains empty values.")
     if not pd.to_datetime(dataframe["birthdate"], format="%Y-%m-%d", errors="coerce").notnull().all():
-        raise ValueError("The date format is invalid.")
+        raise ValueError("The date format of an entry in the data file is invalid.")
     for date in dataframe["birthdate"]:
         if pd.DatetimeIndex([date]) > pd.Timestamp.now():
-            raise ValueError("The birthdate is in the future.")
+            raise ValueError("The birthdate in the data file is in the future.")
     return True
 
 
-def file_valid(filename):
+def read_datafile(filename):
     # TODO raise exception for reading
     dataframe = pd.read_csv(filename)
     dataframe_valid(dataframe)
-    return True
+    return dataframe
 
 
 parser = argparse.ArgumentParser(description="Birthday program")
@@ -30,8 +30,9 @@ parser.add_argument(
 
 if __name__ == "__main__":
     args = parser.parse_args()
+    dataframe = pd.DataFrame()
     if args.validate != None:
         try:
-            file_valid(args.validate[0])
+            dataframe = read_datafile(args.validate[0])
         except ValueError as err:
             print(err)
