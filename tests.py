@@ -3,7 +3,7 @@ import pandas as pd
 import unittest
 
 
-class TestValidation(unittest.TestCase):
+class TestDataFrameValidation(unittest.TestCase):
     def _construct_data_dict(self) -> dict:
         data = {
             "name": ["John", "Peter", "Janet"],
