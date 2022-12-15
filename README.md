@@ -23,12 +23,12 @@ Checks if the data file is valid for the script:
 - The e-mail template is hardcoded
 - The e-mail will be sent a week before the person's birthday
 
-The settings for the SMTP server must be given in an .env file:
-  SMTP_SERVER
-  SMTP_PORT
-  SENDER_EMAIL
-  API_KEY
+The settings for the SMTP server must be given in an `.env` file:
+  `SMTP_SERVER`
+  `SMTP_PORT`
+  `SENDER_EMAIL`
+  `API_KEY`
 
 # Utilities:
-  add_cron_job.sh - shell script that adds a cron job with the python script
-  remove_cron_job.sh - shell script that removes the cron job
+  `add_cron_job.sh` - shell script that adds a cron job with the python script
+  `remove_cron_job.sh` - shell script that removes the cron job
