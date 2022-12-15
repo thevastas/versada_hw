@@ -1,7 +1,10 @@
 import argparse
-from os import linesep
+from os import linesep, environ
+from os.path import join, dirname
+from dotenv import load_dotenv
 import pandas as pd
 from datetime import datetime, timedelta
+import smtplib
 
 
 def dataframe_valid(dataframe: pd.DataFrame) -> bool:
@@ -44,7 +47,12 @@ def find_birthdays(dataframe: pd.DataFrame, days_until_birthday: int = 7) -> lis
 
 
 def send_single_email(
-    recipient: str, name_of_birthday_person: str, date: str, name: str, amount_of_days: int = 7, dry_run: bool = False
+    recipient: str,
+    name_of_birthday_person: str,
+    date: str,
+    name: str,
+    session,
+    amount_of_days: int = 7,
 ):
     subject = f"Birthday Reminder: {name_of_birthday_person} birthday on {date}"
     body = (
@@ -56,9 +64,11 @@ def send_single_email(
         print(f"subject: {subject}")
         print(f"body: {body}")
         print("---------")
+    else:
+        session.sendmail("v.astasauskas@gmail.com", recipient, f"Subject: {subject}{linesep}{body}")
 
 
-def send_emails(birthday_people: list[dict], dataframe: pd.DataFrame):
+def send_emails(birthday_people: list[dict], dataframe: pd.DataFrame, session):
     for birthday_person in birthday_people:
         for index, row in dataframe.iterrows():
             if not row["email"] == birthday_person["email"]:
@@ -67,8 +77,21 @@ def send_emails(birthday_people: list[dict], dataframe: pd.DataFrame):
                     name_of_birthday_person=birthday_person["name"],
                     date=birthday_person["celebrates_on"],
                     name=row["name"],
-                    dry_run=True,
+                    session=session,
                 )
+
+
+def initialize_smtp_server():
+    dotenv_path = join(dirname(__file__), ".env")
+    load_dotenv(dotenv_path)
+    API_KEY = environ.get("API_KEY", "default")
+    SMTP_SERVER = environ.get("SMTP_SERVER", "default")
+    SMTP_PORT = environ.get("SMTP_PORT", "default")
+    SENDER_EMAIL = environ.get("SENDER_EMAIL", "default")
+    session = smtplib.SMTP(SMTP_SERVER, int(SMTP_PORT))
+    session.starttls()
+    session.login(SENDER_EMAIL, API_KEY)
+    return session
 
 
 parser = argparse.ArgumentParser(description="Birthday program")
@@ -86,6 +109,8 @@ parser.add_argument(
 )
 
 if __name__ == "__main__":
+    dry_run = True
+
     args = parser.parse_args()
     dataframe = pd.DataFrame()
     if args.validate != None:
@@ -96,5 +121,6 @@ if __name__ == "__main__":
             print(err)
     if args.execute != None:
         dataframe = read_datafile(args.execute[0])
+        session = initialize_smtp_server()
         birthday_list = find_birthdays(dataframe)
-        send_emails(birthday_list, dataframe)
+        send_emails(birthday_list, dataframe, session)
